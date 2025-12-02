@@ -1,1 +1,27 @@
+name: CI - Build & Test Docker PHP
 
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (prod)
+        run: |
+          docker build -f Dockerfile.prod -t php-docker-ci .
+
+      - name: Test PHP inside container
+        run: |
+          docker run --rm php-docker-ci php -v
+          docker run --rm php-docker-ci php -r "echo 'CI test OK';"
