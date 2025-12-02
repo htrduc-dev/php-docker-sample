@@ -1,0 +1,25 @@
+# ========== Stage 1: Build dependencies ==========
+FROM php:8.2-fpm AS builder
+
+RUN docker-php-ext-install pdo pdo_mysql
+
+WORKDIR /var/www/html
+COPY . /var/www/html
+
+# nếu có composer.json thì build vendor tại đây
+# RUN composer install --no-dev --optimize-autoloader
+
+# ========== Stage 2: Production image ========== 
+FROM php:8.2-fpm
+
+RUN docker-php-ext-install pdo pdo_mysql
+
+WORKDIR /var/www/html
+
+# Chỉ COPY file cần thiết (loại file test, docs, docker/, .git,…)
+COPY --from=builder /var/www/html /var/www/html
+
+# Xdebug không load
+RUN rm -f /usr/local/etc/php/conf.d/*xdebug*.ini || true
+
+EXPOSE 9000
